@@ -44,7 +44,7 @@ class SubmenuService:
 
         return result
 
-    def get_submenu(
+    def _get_submenu(
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID
@@ -54,6 +54,9 @@ class SubmenuService:
             .filter_by(
                 id=submenu_id,
                 menu_id=menu_id
+            )
+            .options(
+                joinedload(models.Submenu.dishes)
             )
             .first()
         )
@@ -66,10 +69,24 @@ class SubmenuService:
 
         return submenu
 
+    def get_submenu(
+            self,
+            menu_id: uuid.UUID,
+            submenu_id: uuid.UUID
+    ) -> schemas.FullSubmenu:
+        submenu = self._get_submenu(menu_id, submenu_id)
+
+        return schemas.FullSubmenu(
+            id=submenu.id,
+            title=submenu.title,
+            description=submenu.description,
+            dishes_count=len(submenu.dishes)
+        )
+
     def create_submenu(
             self,
             menu_id: uuid.UUID,
-            data: schemas.BaseSubmenu
+            data: schemas.CreateSubmenu
     ) -> models.Submenu:
         menu = self.session.query(models.Menu).get(menu_id)
 
@@ -81,7 +98,8 @@ class SubmenuService:
 
         submenu = models.Submenu(
             **data.model_dump(),
-            menu_id=menu_id
+            menu_id=menu_id,
+            id=uuid.uuid4()
         )
 
         self.session.add(submenu)
@@ -95,7 +113,7 @@ class SubmenuService:
             submenu_id: uuid.UUID,
             data: UpdateSubmenu
     ) -> models.Submenu:
-        submenu = self.get_submenu(menu_id, submenu_id)
+        submenu = self._get_submenu(menu_id, submenu_id)
 
         for field, value in data:
             setattr(submenu, field, value)
@@ -110,7 +128,7 @@ class SubmenuService:
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID
     ) -> None:
-        submenu = self.get_submenu(menu_id, submenu_id)
+        submenu = self._get_submenu(menu_id, submenu_id)
 
         self.session.delete(submenu)
         self.session.commit()

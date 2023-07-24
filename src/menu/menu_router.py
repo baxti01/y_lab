@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Response, status
 
-from src.menu.schemas import FullMenu, BaseMenu, UpdateMenu
+from src.menu.schemas import FullMenu, UpdateMenu, Menu, CreateMenu
 from src.menu.service import MenuService
 
 router = APIRouter(
@@ -19,7 +19,7 @@ def get_menus(
     return service.get_menus()
 
 
-@router.get("/{menu_id}", response_model=BaseMenu)
+@router.get("/{menu_id}", response_model=Menu)
 def get_menu(
         menu_id: uuid.UUID,
         service: MenuService = Depends()
@@ -29,17 +29,17 @@ def get_menu(
 
 @router.post(
     "/",
-    response_model=BaseMenu,
+    response_model=Menu,
     status_code=status.HTTP_201_CREATED
 )
 def create_menu(
-        data: BaseMenu,
+        data: CreateMenu,
         service: MenuService = Depends()
 ):
     return service.create_menu(data)
 
 
-@router.patch("/{menu_id}", response_model=BaseMenu)
+@router.patch("/{menu_id}", response_model=Menu)
 def patch_menu(
         menu_id: uuid.UUID,
         data: UpdateMenu,

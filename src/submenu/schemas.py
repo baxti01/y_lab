@@ -1,18 +1,26 @@
 import uuid
+from typing import Optional
 
 from pydantic import BaseModel
 
 
 class BaseSubmenu(BaseModel):
+    title: str
+    description: str
+
+
+class Submenu(BaseSubmenu):
     id: uuid.UUID = uuid.uuid4()
-    title: str
-    description: str
+    dishes_count: Optional[int] = None
 
 
-class FullSubmenu(BaseSubmenu):
-    dishes_count: int
+class FullSubmenu(Submenu):
+    dishes_count: Optional[int] = None
 
 
-class UpdateSubmenu(BaseModel):
-    title: str
-    description: str
+class CreateSubmenu(BaseSubmenu):
+    pass
+
+
+class UpdateSubmenu(BaseSubmenu):
+    pass

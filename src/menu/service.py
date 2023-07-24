@@ -33,7 +33,7 @@ class MenuService:
                 id=menu.id,
                 title=menu.title,
                 description=menu.description,
-                submenu_count=submenu_count,
+                submenus_count=submenu_count,
                 dishes_count=dishes_count
             )
 
@@ -41,13 +41,17 @@ class MenuService:
 
         return result
 
-    def get_menu(
+    def _get_menu(
             self,
             menu_id: uuid.UUID
     ) -> models.Menu:
         menu = (
             self.session.query(models.Menu)
             .filter_by(id=menu_id)
+            .options(
+                joinedload(models.Menu.submenus)
+                .joinedload(models.Submenu.dishes)
+            )
             .first()
         )
 
@@ -59,19 +63,32 @@ class MenuService:
 
         return menu
 
+    def get_menu(
+            self,
+            menu_id: uuid.UUID
+    ) -> schemas.FullMenu:
+        menu = self._get_menu(menu_id)
+        submenus_count = len(menu.submenus)
+        dishes_count = sum(len(submenu.dishes) for submenu in menu.submenus)
+
+        return schemas.FullMenu(
+            id=menu.id,
+            title=menu.title,
+            description=menu.description,
+            submenus_count=submenus_count,
+            dishes_count=dishes_count
+        )
+
     def create_menu(
             self,
-            data: schemas.BaseMenu
+            data: schemas.CreateMenu
     ) -> models.Menu:
-        menu = models.Menu(**data.model_dump())
-        try:
-            self.session.add(menu)
-            self.session.commit()
-        except Exception as e:
-            raise HTTPException(
-                detail="Ошибка создания меню",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        menu = models.Menu(
+            **data.model_dump(),
+            id=uuid.uuid4()
+        )
+        self.session.add(menu)
+        self.session.commit()
 
         return menu
 
@@ -80,7 +97,7 @@ class MenuService:
             meu_id: uuid.UUID,
             data: schemas.UpdateMenu
     ) -> models.Menu:
-        menu = self.get_menu(meu_id)
+        menu = self._get_menu(meu_id)
         for field, value in data:
             setattr(menu, field, value)
 
@@ -93,6 +110,6 @@ class MenuService:
             self,
             menu_id: uuid.UUID
     ) -> None:
-        menu = self.get_menu(menu_id)
+        menu = self._get_menu(menu_id)
         self.session.delete(menu)
         self.session.commit()
