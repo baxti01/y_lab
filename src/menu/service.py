@@ -14,7 +14,7 @@ class MenuService:
     def __init__(self, session: Session = Depends(get_session)):
         self.session = session
 
-    def get_menus(self) -> List[schemas.FullMenu]:
+    def get_menus(self) -> List[schemas.Menu]:
         result = []
         menus = (
             self.session.query(models.Menu)
@@ -29,7 +29,7 @@ class MenuService:
             submenu_count = len(menu.submenus)
             dishes_count = sum(len(submenu.dishes) for submenu in menu.submenus)
 
-            item = schemas.FullMenu(
+            item = schemas.Menu(
                 id=menu.id,
                 title=menu.title,
                 description=menu.description,
@@ -66,12 +66,12 @@ class MenuService:
     def get_menu(
             self,
             menu_id: uuid.UUID
-    ) -> schemas.FullMenu:
+    ) -> schemas.Menu:
         menu = self._get_menu(menu_id)
         submenus_count = len(menu.submenus)
         dishes_count = sum(len(submenu.dishes) for submenu in menu.submenus)
 
-        return schemas.FullMenu(
+        return schemas.Menu(
             id=menu.id,
             title=menu.title,
             description=menu.description,

@@ -12,6 +12,10 @@ class BaseDish(BaseModel):
 
 class Dish(BaseDish):
     id: uuid.UUID
+    submenu_id: uuid.UUID
+
+    class Config:
+        from_attributes = True
 
 
 class CreateDish(BaseDish):

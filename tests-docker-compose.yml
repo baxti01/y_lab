@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  pytest:
+    build:
+      context: .
+      dockerfile: ./tests/Dockerfile
+    environment:
+      APP_HOST: 'app'
+      APP_PORT: 8070

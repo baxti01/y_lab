@@ -1,25 +1,24 @@
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, status
 
-from src.menu.schemas import FullMenu, UpdateMenu, Menu, CreateMenu
+from src.menu.schemas import UpdateMenu, Menu, CreateMenu
 from src.menu.service import MenuService
 
 router = APIRouter(
-    prefix="/menus",
     tags=["Menu"]
 )
 
 
-@router.get('/', response_model=List[FullMenu])
+@router.get('/menus', response_model=List[Menu])
 def get_menus(
         service: MenuService = Depends()
 ):
     return service.get_menus()
 
 
-@router.get("/{menu_id}", response_model=Menu)
+@router.get("/menus/{menu_id}", response_model=Menu)
 def get_menu(
         menu_id: uuid.UUID,
         service: MenuService = Depends()
@@ -28,7 +27,7 @@ def get_menu(
 
 
 @router.post(
-    "/",
+    "/menus",
     response_model=Menu,
     status_code=status.HTTP_201_CREATED
 )
@@ -39,7 +38,7 @@ def create_menu(
     return service.create_menu(data)
 
 
-@router.patch("/{menu_id}", response_model=Menu)
+@router.patch("/menus/{menu_id}", response_model=Menu)
 def patch_menu(
         menu_id: uuid.UUID,
         data: UpdateMenu,
@@ -49,7 +48,7 @@ def patch_menu(
 
 
 @router.delete(
-    "/{menu_id}",
+    "/menus/{menu_id}",
 )
 def delete_menu(
         menu_id: uuid.UUID,

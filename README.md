@@ -32,3 +32,14 @@ docker-compose up
 И пользуемся!
 
 ---
+
+### Запуск тестов
+
+```
+docker-compose -f tests-docker-compose.yml up
+```
+Или можно запустить в интерактивном режиме
+```
+docker-compose -f tests-docker-compose.yml up -d
+```
+---

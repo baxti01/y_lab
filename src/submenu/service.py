@@ -33,11 +33,12 @@ class SubmenuService:
         )
 
         for submenu in submenus:
-            item = schemas.FullSubmenu(
+            item = schemas.Submenu(
                 id=submenu.id,
                 title=submenu.title,
                 description=submenu.description,
-                dishes_count=len(submenu.dishes)
+                dishes_count=len(submenu.dishes),
+                menu_id=menu_id
             )
 
             result.append(item)
@@ -73,14 +74,15 @@ class SubmenuService:
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID
-    ) -> schemas.FullSubmenu:
+    ) -> schemas.Submenu:
         submenu = self._get_submenu(menu_id, submenu_id)
 
-        return schemas.FullSubmenu(
+        return schemas.Submenu(
             id=submenu.id,
             title=submenu.title,
             description=submenu.description,
-            dishes_count=len(submenu.dishes)
+            dishes_count=len(submenu.dishes),
+            menu_id=menu_id
         )
 
     def create_submenu(

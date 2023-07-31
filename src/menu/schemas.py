@@ -12,13 +12,11 @@ class BaseMenu(BaseModel):
 class Menu(BaseMenu):
     id: uuid.UUID
 
-    submenus_count: Optional[int] = None
-    dishes_count: Optional[int] = None
+    submenus_count: Optional[int] = 0
+    dishes_count: Optional[int] = 0
 
-
-class FullMenu(Menu):
-    submenus_count: int
-    dishes_count: int
+    class Config:
+        from_attributes = True
 
 
 class CreateMenu(BaseMenu):
