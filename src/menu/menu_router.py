@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
+from fastapi_cache.decorator import cache
 
 from src.menu.schemas import CreateMenu, Menu, UpdateMenu
 from src.menu.service import MenuService
@@ -11,6 +12,7 @@ router = APIRouter(
 
 
 @router.get('/menus', response_model=list[Menu])
+@cache(expire=300)
 def get_menus(
         service: MenuService = Depends()
 ):
@@ -18,6 +20,7 @@ def get_menus(
 
 
 @router.get('/menus/{menu_id}', response_model=Menu)
+@cache(expire=300)
 def get_menu(
         menu_id: uuid.UUID,
         service: MenuService = Depends()

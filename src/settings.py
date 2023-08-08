@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
 
+    redis_host: str = '0.0.0.0'
+    redis_port: int = 6379
+
     # jwt_secret: str
     # jwt_algorithm: str = "HS256"
     # jwt_access_token_expire: int = 30

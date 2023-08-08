@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
+from fastapi_cache.decorator import cache
 
 from src.submenu.schemas import CreateSubmenu, Submenu, UpdateSubmenu
 from src.submenu.service import SubmenuService
@@ -14,6 +15,7 @@ router = APIRouter(
     '/menus/{menu_id}/submenus',
     response_model=list[Submenu]
 )
+@cache(expire=30)
 def get_submenus(
         menu_id: uuid.UUID,
         service: SubmenuService = Depends()
@@ -25,6 +27,7 @@ def get_submenus(
     '/menus/{menu_id}/submenus/{submenu_id}',
     response_model=Submenu
 )
+@cache(expire=30)
 def get_submenu(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,

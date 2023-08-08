@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
+from fastapi_cache.decorator import cache
 
 from src.dish.schemas import CreateDish, Dish, UpdateDish
 from src.dish.service import DishService
@@ -14,6 +15,7 @@ router = APIRouter(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes',
     response_model=list[Dish]
 )
+@cache(expire=300)
 def get_dishes(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
@@ -26,6 +28,7 @@ def get_dishes(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=Dish
 )
+@cache(expire=300)
 def get_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
