@@ -4,7 +4,7 @@ import pytest
 from httpx import Client
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def create_menu_and_submenu(create_menu_submenu):
     pass
 
@@ -17,7 +17,7 @@ def test_get_dish_list(
     response = client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
-        f"/dishes"
+        f'/dishes'
     )
 
     assert response.status_code == 200
@@ -33,11 +33,11 @@ def test_get_dish(
     response = client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
-        f"/dishes/{dish_id}"
+        f'/dishes/{dish_id}'
     )
 
     assert response.status_code == 404
-    assert response.json() == {"detail": "dish not found"}
+    assert response.json() == {'detail': 'dish not found'}
 
 
 def test_create_dish(
@@ -46,23 +46,23 @@ def test_create_dish(
         global_menu_data
 ):
     data = {
-        "title": "Dish title",
-        "description": "Dish description",
-        "price": "0.00"
+        'title': 'Dish title',
+        'description': 'Dish description',
+        'price': '0.00'
     }
 
     response = client.post(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
-        f"/dishes",
+        f'/dishes',
         json=data
     )
 
     assert response.status_code == 201
     assert response.json()
-    assert response.json()["title"] == data["title"]
-    assert response.json()["description"] == data["description"]
-    assert response.json()["price"] == data["price"]
+    assert response.json()['title'] == data['title']
+    assert response.json()['description'] == data['description']
+    assert response.json()['price'] == data['price']
 
     global_dish_data.update(response.json())
 
@@ -72,9 +72,9 @@ def test_update_dish(
         global_dish_data,
         global_menu_data
 ):
-    global_dish_data["title"] = "Dish title updated"
-    global_dish_data["description"] = "Dish description updated"
-    global_dish_data["price"] = "5.00"
+    global_dish_data['title'] = 'Dish title updated'
+    global_dish_data['description'] = 'Dish description updated'
+    global_dish_data['price'] = '5.00'
 
     response = client.patch(
         f"/menus/{global_menu_data['id']}"
@@ -95,7 +95,7 @@ def test_get_dishes(
     response = client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
-        f"/dishes"
+        f'/dishes'
     )
 
     assert response.status_code == 200

@@ -4,7 +4,7 @@ import pytest
 from httpx import Client
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def create_menus(create_menu):
     pass
 
@@ -37,8 +37,8 @@ def test_create_submenu(
         global_submenu_data
 ):
     data = {
-        "title": "Submenu title",
-        "description": "Submenu description"
+        'title': 'Submenu title',
+        'description': 'Submenu description'
     }
     response = client.post(
         f"/menus/{global_submenu_data['menu_id']}/submenus",
@@ -48,8 +48,8 @@ def test_create_submenu(
 
     res_data = response.json()
     assert res_data
-    assert res_data["title"] == data["title"]
-    assert res_data["description"] == data["description"]
+    assert res_data['title'] == data['title']
+    assert res_data['description'] == data['description']
 
     global_submenu_data.update(res_data)
 
@@ -58,8 +58,8 @@ def test_update_submenu(
         client: Client,
         global_submenu_data
 ):
-    global_submenu_data["title"] = "Submenu title updated"
-    global_submenu_data["description"] = "Submenu description updated"
+    global_submenu_data['title'] = 'Submenu title updated'
+    global_submenu_data['description'] = 'Submenu description updated'
     response = client.patch(
         f"/menus/{global_submenu_data['menu_id']}/submenus/{global_submenu_data['id']}",
         json=global_submenu_data

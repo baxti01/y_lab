@@ -1,115 +1,69 @@
 import uuid
-from typing import List
 
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from src import models
 from src.database import get_session
 from src.menu import schemas
+from src.menu.repository import MenuRepository
 
 
 class MenuService:
-
     def __init__(self, session: Session = Depends(get_session)):
         self.session = session
+        self.menu_repository = MenuRepository(session=session)
 
-    def get_menus(self) -> List[schemas.Menu]:
-        result = []
-        menus = (
-            self.session.query(models.Menu)
-            .options(
-                joinedload(models.Menu.submenus)
-                .joinedload(models.Submenu.dishes)
-            )
-            .all()
-        )
-
-        for menu in menus:
-            submenu_count = len(menu.submenus)
-            dishes_count = sum(len(submenu.dishes) for submenu in menu.submenus)
-
-            item = schemas.Menu(
-                id=menu.id,
-                title=menu.title,
-                description=menu.description,
-                submenus_count=submenu_count,
-                dishes_count=dishes_count
-            )
-
-            result.append(item)
-
-        return result
-
-    def _get_menu(
-            self,
-            menu_id: uuid.UUID
-    ) -> models.Menu:
-        menu = (
-            self.session.query(models.Menu)
-            .filter_by(id=menu_id)
-            .options(
-                joinedload(models.Menu.submenus)
-                .joinedload(models.Submenu.dishes)
-            )
-            .first()
-        )
-
-        if not menu:
-            raise HTTPException(
-                detail="menu not found",
-                status_code=status.HTTP_404_NOT_FOUND
-            )
+    @classmethod
+    def _merge_data(
+            cls,
+            instance: models.Menu,
+            submenus_count: int,
+            dishes_count: int,
+    ) -> schemas.Menu:
+        menu = schemas.Menu.model_validate(instance)
+        menu.submenus_count = submenus_count
+        menu.dishes_count = dishes_count
 
         return menu
+
+    def get_menus(self) -> list[schemas.Menu]:
+        result = []
+        for menu_tuple in self.menu_repository.get_all():
+            result.append(self._merge_data(*menu_tuple))
+
+        return result
 
     def get_menu(
             self,
             menu_id: uuid.UUID
     ) -> schemas.Menu:
-        menu = self._get_menu(menu_id)
-        submenus_count = len(menu.submenus)
-        dishes_count = sum(len(submenu.dishes) for submenu in menu.submenus)
-
-        return schemas.Menu(
-            id=menu.id,
-            title=menu.title,
-            description=menu.description,
-            submenus_count=submenus_count,
-            dishes_count=dishes_count
+        return self._merge_data(
+            *self.menu_repository.get(id=menu_id)
         )
 
     def create_menu(
             self,
             data: schemas.CreateMenu
-    ) -> models.Menu:
-        menu = models.Menu(
-            **data.model_dump(),
-            id=uuid.uuid4()
+    ) -> schemas.Menu:
+        return self._merge_data(
+            *self.menu_repository.create(data)
         )
-        self.session.add(menu)
-        self.session.commit()
-
-        return menu
 
     def patch_menu(
             self,
-            meu_id: uuid.UUID,
+            menu_id: uuid.UUID,
             data: schemas.UpdateMenu
-    ) -> models.Menu:
-        menu = self._get_menu(meu_id)
-        for field, value in data:
-            setattr(menu, field, value)
-
-        self.session.commit()
-        self.session.refresh(menu)
-
-        return menu
+    ) -> schemas.Menu:
+        return self._merge_data(
+            *self.menu_repository.patch(
+                menu_id=menu_id,
+                data=data
+            )
+        )
 
     def delete_menu(
             self,
             menu_id: uuid.UUID
     ) -> None:
-        menu = self._get_menu(menu_id)
-        self.session.delete(menu)
-        self.session.commit()
+        self.menu_repository.delete(menu_id)

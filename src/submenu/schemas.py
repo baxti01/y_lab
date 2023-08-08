@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -12,7 +11,7 @@ class BaseSubmenu(BaseModel):
 class Submenu(BaseSubmenu):
     id: uuid.UUID
     menu_id: uuid.UUID
-    dishes_count: Optional[int] = 0
+    dishes_count: int | None = 0
 
     class Config:
         from_attributes = True

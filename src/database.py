@@ -1,12 +1,11 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 from src.settings import settings
 
-DATABASE_URL = f"postgresql+psycopg2://" \
-               f"{settings.postgres_user}:{settings.postgres_password}@" \
-               f"{settings.postgres_host}/{settings.postgres_db}"
+DATABASE_URL = f'postgresql+psycopg2://' \
+               f'{settings.postgres_user}:{settings.postgres_password}@' \
+               f'{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}'
 
 engine = create_engine(
     url=DATABASE_URL

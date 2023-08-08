@@ -2,11 +2,11 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    server_host: str = "0.0.0.0"
+    server_host: str = '0.0.0.0'
     server_port: int = 8000
     reload: bool = False
 
-    postgres_host: str = "0.0.0.0"
+    postgres_host: str = '0.0.0.0'
     postgres_port: int = 5432
     postgres_user: str
     postgres_password: str
@@ -19,6 +19,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings(
-    _env_file=".env",
-    _env_file_encoding="UTF-8"
+    _env_file='./.env',
+    _env_file_encoding='UTF-8'
 )

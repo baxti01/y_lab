@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 
 from src.dish import dish_router
 from src.menu import menu_router
@@ -7,7 +7,7 @@ from src.submenu import submenu_router
 app = FastAPI()
 
 router = APIRouter(
-    prefix="/api/v1"
+    prefix='/api/v1'
 )
 
 router.include_router(menu_router.router)

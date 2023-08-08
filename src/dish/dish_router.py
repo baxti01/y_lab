@@ -1,30 +1,29 @@
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, status
 
-from src.dish.schemas import UpdateDish, Dish, CreateDish
+from src.dish.schemas import CreateDish, Dish, UpdateDish
 from src.dish.service import DishService
 
 router = APIRouter(
-    tags=["Dish"]
+    tags=['Dish']
 )
 
 
 @router.get(
-    "/menus/{menu_id}/submenus/{submenu_id}/dishes",
-    response_model=List[Dish]
+    '/menus/{menu_id}/submenus/{submenu_id}/dishes',
+    response_model=list[Dish]
 )
 def get_dishes(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         service: DishService = Depends()
 ):
-    return service.get_dishes(submenu_id)
+    return service.get_dishes(menu_id, submenu_id)
 
 
 @router.get(
-    "/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
+    '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=Dish
 )
 def get_dish(
@@ -33,11 +32,11 @@ def get_dish(
         dish_id: uuid.UUID,
         service: DishService = Depends()
 ):
-    return service.get_dish(submenu_id, dish_id)
+    return service.get_dish(menu_id, submenu_id, dish_id)
 
 
 @router.post(
-    "/menus/{menu_id}/submenus/{submenu_id}/dishes",
+    '/menus/{menu_id}/submenus/{submenu_id}/dishes',
     response_model=Dish,
     status_code=status.HTTP_201_CREATED
 )
@@ -47,11 +46,11 @@ def create_dish(
         data: CreateDish,
         service: DishService = Depends()
 ):
-    return service.create_dish(submenu_id, data)
+    return service.create_dish(menu_id, submenu_id, data)
 
 
 @router.patch(
-    "/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
+    '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=Dish
 )
 def patch_dish(
@@ -61,11 +60,11 @@ def patch_dish(
         data: UpdateDish,
         service: DishService = Depends()
 ):
-    return service.patch_dish(submenu_id, dish_id, data)
+    return service.patch_dish(menu_id, submenu_id, dish_id, data)
 
 
 @router.delete(
-    "/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
+    '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
 )
 def delete_dish(
         menu_id: uuid.UUID,
@@ -73,5 +72,5 @@ def delete_dish(
         dish_id: uuid.UUID,
         service: DishService = Depends()
 ):
-    service.delete_dish(submenu_id, dish_id)
+    service.delete_dish(menu_id, submenu_id, dish_id)
     return {}

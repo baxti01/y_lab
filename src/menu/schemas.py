@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import uuid
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -12,8 +13,8 @@ class BaseMenu(BaseModel):
 class Menu(BaseMenu):
     id: uuid.UUID
 
-    submenus_count: Optional[int] = 0
-    dishes_count: Optional[int] = 0
+    submenus_count: int | None = 0
+    dishes_count: int | None = 0
 
     class Config:
         from_attributes = True

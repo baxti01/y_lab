@@ -1,12 +1,13 @@
 import uuid
-from typing import List
 
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from src import models
 from src.database import get_session
+from src.menu.repository import MenuRepository
 from src.submenu import schemas
+from src.submenu.repository import SubmenuRepository
 from src.submenu.schemas import UpdateSubmenu
 
 
@@ -15,122 +16,72 @@ class SubmenuService:
     def __init__(
             self, session: Session = Depends(get_session)
     ):
-        self.session = session
+        self.session = session,
+        self.submenu_repository = SubmenuRepository(session)
+        self.menu_repository = MenuRepository(session)
+
+    @classmethod
+    def _merge_data(
+            cls,
+            instance: models.Submenu,
+            dishes_count: int
+    ) -> schemas.Submenu:
+        submenu = schemas.Submenu.model_validate(instance)
+        submenu.dishes_count = dishes_count
+
+        return submenu
 
     def get_submenus(
             self,
             menu_id: uuid.UUID
-    ) -> List[models.Submenu]:
+    ) -> list[schemas.Submenu]:
         result = []
-
-        submenus = (
-            self.session.query(models.Submenu)
-            .filter_by(menu_id=menu_id)
-            .options(
-                joinedload(models.Submenu.dishes)
-            )
-            .all()
-        )
-
-        for submenu in submenus:
-            item = schemas.Submenu(
-                id=submenu.id,
-                title=submenu.title,
-                description=submenu.description,
-                dishes_count=len(submenu.dishes),
-                menu_id=menu_id
-            )
-
-            result.append(item)
+        for submenu_tuple in self.submenu_repository.get_all(menu_id):
+            result.append(self._merge_data(*submenu_tuple))
 
         return result
-
-    def _get_submenu(
-            self,
-            menu_id: uuid.UUID,
-            submenu_id: uuid.UUID
-    ) -> models.Submenu:
-        submenu = (
-            self.session.query(models.Submenu)
-            .filter_by(
-                id=submenu_id,
-                menu_id=menu_id
-            )
-            .options(
-                joinedload(models.Submenu.dishes)
-            )
-            .first()
-        )
-
-        if not submenu:
-            raise HTTPException(
-                detail="submenu not found",
-                status_code=status.HTTP_404_NOT_FOUND
-            )
-
-        return submenu
 
     def get_submenu(
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID
     ) -> schemas.Submenu:
-        submenu = self._get_submenu(menu_id, submenu_id)
-
-        return schemas.Submenu(
-            id=submenu.id,
-            title=submenu.title,
-            description=submenu.description,
-            dishes_count=len(submenu.dishes),
-            menu_id=menu_id
+        return self._merge_data(
+            *self.submenu_repository.get(
+                menu_id=menu_id,
+                id=submenu_id
+            )
         )
 
     def create_submenu(
             self,
             menu_id: uuid.UUID,
             data: schemas.CreateSubmenu
-    ) -> models.Submenu:
-        menu = self.session.query(models.Menu).get(menu_id)
+    ) -> schemas.Submenu:
+        # checking the menu availability
+        self.menu_repository.get(id=menu_id)
 
-        if not menu:
-            raise HTTPException(
-                detail="menu not found",
-                status_code=status.HTTP_404_NOT_FOUND
-            )
-
-        submenu = models.Submenu(
-            **data.model_dump(),
-            menu_id=menu_id,
-            id=uuid.uuid4()
+        return self._merge_data(
+            *self.submenu_repository.create(menu_id, data)
         )
-
-        self.session.add(submenu)
-        self.session.commit()
-
-        return submenu
 
     def patch_submenu(
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID,
             data: UpdateSubmenu
-    ) -> models.Submenu:
-        submenu = self._get_submenu(menu_id, submenu_id)
-
-        for field, value in data:
-            setattr(submenu, field, value)
-
-        self.session.commit()
-        self.session.refresh(submenu)
-
-        return submenu
+    ) -> schemas.Submenu:
+        return self._merge_data(
+            *self.submenu_repository.patch(
+                menu_id=menu_id,
+                submenu_id=submenu_id,
+                data=data
+            )
+        )
 
     def delete_submenu(
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID
     ) -> None:
-        submenu = self._get_submenu(menu_id, submenu_id)
-
-        self.session.delete(submenu)
-        self.session.commit()
+        self.submenu_repository.delete(menu_id, submenu_id)

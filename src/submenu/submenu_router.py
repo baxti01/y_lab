@@ -1,19 +1,18 @@
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, status
 
-from src.submenu.schemas import UpdateSubmenu, Submenu, CreateSubmenu
+from src.submenu.schemas import CreateSubmenu, Submenu, UpdateSubmenu
 from src.submenu.service import SubmenuService
 
 router = APIRouter(
-    tags=["Submenu"]
+    tags=['Submenu']
 )
 
 
 @router.get(
-    "/menus/{menu_id}/submenus",
-    response_model=List[Submenu]
+    '/menus/{menu_id}/submenus',
+    response_model=list[Submenu]
 )
 def get_submenus(
         menu_id: uuid.UUID,
@@ -23,7 +22,7 @@ def get_submenus(
 
 
 @router.get(
-    "/menus/{menu_id}/submenus/{submenu_id}",
+    '/menus/{menu_id}/submenus/{submenu_id}',
     response_model=Submenu
 )
 def get_submenu(
@@ -35,7 +34,7 @@ def get_submenu(
 
 
 @router.post(
-    "/menus/{menu_id}/submenus",
+    '/menus/{menu_id}/submenus',
     response_model=Submenu,
     status_code=status.HTTP_201_CREATED
 )
@@ -48,7 +47,7 @@ def create_submenu(
 
 
 @router.patch(
-    "/menus/{menu_id}/submenus/{submenu_id}",
+    '/menus/{menu_id}/submenus/{submenu_id}',
     response_model=Submenu
 )
 def patch_submenu(
@@ -64,7 +63,7 @@ def patch_submenu(
     )
 
 
-@router.delete("/menus/{menu_id}/submenus/{submenu_id}")
+@router.delete('/menus/{menu_id}/submenus/{submenu_id}')
 def delete_submenu(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
