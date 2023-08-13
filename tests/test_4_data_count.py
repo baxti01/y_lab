@@ -1,9 +1,9 @@
 import pytest
-from httpx import Client
+from httpx import AsyncClient
 
 
-def test_create_menu(
-        client: Client,
+async def test_create_menu(
+        client: AsyncClient,
         global_menu_data,
         global_submenu_data
 ):
@@ -11,7 +11,7 @@ def test_create_menu(
         'title': 'Menu title',
         'description': 'Menu description'
     }
-    response = client.post('/menus', json=data)
+    response = await client.post('/menus', json=data)
 
     assert response.status_code == 201
 
@@ -24,8 +24,8 @@ def test_create_menu(
     global_submenu_data.update({'menu_id': res_data['id']})
 
 
-def test_create_submenu(
-        client: Client,
+async def test_create_submenu(
+        client: AsyncClient,
         global_submenu_data,
         global_dish_data
 ):
@@ -33,7 +33,7 @@ def test_create_submenu(
         'title': 'Submenu title',
         'description': 'Submenu description'
     }
-    response = client.post(
+    response = await client.post(
         f"/menus/{global_submenu_data['menu_id']}/submenus",
         json=data
     )
@@ -63,13 +63,13 @@ def test_create_submenu(
         }
     ]
 )
-def test_create_dishes(
-        client: Client,
+async def test_create_dishes(
+        client: AsyncClient,
         global_menu_data,
         global_dish_data,
         data,
 ):
-    response = client.post(
+    response = await client.post(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f'/dishes',
@@ -87,11 +87,11 @@ def test_create_dishes(
     global_dish_data.update(response.json())
 
 
-def test_get_menu(
-        client: Client,
+async def test_get_menu(
+        client: AsyncClient,
         global_menu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
     )
 
@@ -100,11 +100,11 @@ def test_get_menu(
     assert response.json()['dishes_count'] == 2
 
 
-def test_get_submenu(
-        client: Client,
+async def test_get_submenu(
+        client: AsyncClient,
         global_submenu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_submenu_data['menu_id']}/submenus/{global_submenu_data['id']}"
     )
 
@@ -112,11 +112,11 @@ def test_get_submenu(
     assert response.json()['dishes_count'] == 2
 
 
-def test_delete_submenu(
-        client: Client,
+async def test_delete_submenu(
+        client: AsyncClient,
         global_submenu_data
 ):
-    response = client.delete(
+    response = await client.delete(
         f"/menus/{global_submenu_data['menu_id']}/submenus/{global_submenu_data['id']}"
     )
 
@@ -124,11 +124,11 @@ def test_delete_submenu(
     assert response.json() == {}
 
 
-def test_get_submenus(
-        client: Client,
+async def test_get_submenus(
+        client: AsyncClient,
         global_submenu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_submenu_data['menu_id']}/submenus"
     )
 
@@ -136,12 +136,12 @@ def test_get_submenus(
     assert response.json() == []
 
 
-def test_get_dishes(
-        client: Client,
+async def test_get_dishes(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f'/dishes'
@@ -151,11 +151,11 @@ def test_get_dishes(
     assert response.json() == []
 
 
-def test_get_menu_2(
-        client: Client,
+async def test_get_menu_2(
+        client: AsyncClient,
         global_menu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
     )
 
@@ -164,20 +164,20 @@ def test_get_menu_2(
     assert response.json()['dishes_count'] == 0
 
 
-def test_delete_menu(
-        client: Client,
+async def test_delete_menu(
+        client: AsyncClient,
         global_menu_data
 ):
-    response = client.delete(f"/menus/{global_menu_data['id']}")
+    response = await client.delete(f"/menus/{global_menu_data['id']}")
 
     assert response.status_code == 200
     assert response.json() == {}
 
 
-def test_get_menus(
-        client: Client,
+async def test_get_menus(
+        client: AsyncClient,
         global_menu_data
 ):
-    response = client.get('/menus')
+    response = await client.get('/menus')
     assert response.status_code == 200
     assert response.json() == []

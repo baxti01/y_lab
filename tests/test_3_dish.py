@@ -1,20 +1,20 @@
 import uuid
 
 import pytest
-from httpx import Client
+from httpx import AsyncClient
 
 
 @pytest.fixture(scope='module', autouse=True)
-def create_menu_and_submenu(create_menu_submenu):
+async def create_menu_and_submenu(create_menu_submenu):
     pass
 
 
-def test_get_dish_list(
-        client: Client,
+async def test_get_dish_list(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f'/dishes'
@@ -24,13 +24,13 @@ def test_get_dish_list(
     assert response.json() == []
 
 
-def test_get_dish(
-        client: Client,
+async def test_get_dish(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
     dish_id = uuid.uuid4()
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f'/dishes/{dish_id}'
@@ -40,8 +40,8 @@ def test_get_dish(
     assert response.json() == {'detail': 'dish not found'}
 
 
-def test_create_dish(
-        client: Client,
+async def test_create_dish(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
@@ -51,7 +51,7 @@ def test_create_dish(
         'price': '0.00'
     }
 
-    response = client.post(
+    response = await client.post(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f'/dishes',
@@ -67,8 +67,8 @@ def test_create_dish(
     global_dish_data.update(response.json())
 
 
-def test_update_dish(
-        client: Client,
+async def test_update_dish(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
@@ -76,7 +76,7 @@ def test_update_dish(
     global_dish_data['description'] = 'Dish description updated'
     global_dish_data['price'] = '5.00'
 
-    response = client.patch(
+    response = await client.patch(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f"/dishes/{global_dish_data['id']}",
@@ -87,12 +87,12 @@ def test_update_dish(
     assert response.json() == global_dish_data
 
 
-def test_get_dishes(
-        client: Client,
+async def test_get_dishes(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f'/dishes'
@@ -102,12 +102,12 @@ def test_get_dishes(
     assert response.json() == [global_dish_data]
 
 
-def test_get_dish_by_id(
-        client: Client,
+async def test_get_dish_by_id(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
-    response = client.get(
+    response = await client.get(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f"/dishes/{global_dish_data['id']}"
@@ -117,12 +117,12 @@ def test_get_dish_by_id(
     assert response.json() == global_dish_data
 
 
-def test_delete_dish(
-        client: Client,
+async def test_delete_dish(
+        client: AsyncClient,
         global_dish_data,
         global_menu_data
 ):
-    response = client.delete(
+    response = await client.delete(
         f"/menus/{global_menu_data['id']}"
         f"/submenus/{global_dish_data['submenu_id']}"
         f"/dishes/{global_dish_data['id']}"

@@ -1,7 +1,8 @@
+import asyncio
 import os
 
 import pytest
-from httpx import Client
+from httpx import AsyncClient
 
 app_host = os.environ.get('APP_HOST')
 app_port = os.environ.get('APP_PORT')
@@ -11,10 +12,18 @@ api_version = '/api/v1/'
 BASE_URL = 'http://127.0.0.1:8000/api/v1'
 
 
+@pytest.fixture(scope='session')
+def event_loop():
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
 @pytest.fixture(scope='session', autouse=True)
-def client():
-    client = Client(base_url=BASE_URL)
-    return client
+async def client():
+    async with AsyncClient(base_url=BASE_URL) as client:
+        yield client
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -53,12 +62,12 @@ def global_dish_data():
 
 
 @pytest.fixture(scope='module')
-def create_menu(
-        client: Client,
+async def create_menu(
+        client: AsyncClient,
         global_menu_data,
         global_submenu_data
 ):
-    response = client.post('/menus', json=global_menu_data)
+    response = await client.post('/menus', json=global_menu_data)
 
     global_menu_data.update(response.json())
     global_submenu_data.update({'menu_id': response.json()['id']})
@@ -67,13 +76,13 @@ def create_menu(
 
     yield
 
-    response = client.delete(f"/menus/{global_menu_data['id']}")
+    response = await client.delete(f"/menus/{global_menu_data['id']}")
     assert response.status_code == 200
 
 
 @pytest.fixture(scope='module')
-def create_menu_submenu(
-        client: Client,
+async def create_menu_submenu(
+        client: AsyncClient,
         create_menu,
         global_submenu_data,
         global_dish_data
@@ -82,7 +91,7 @@ def create_menu_submenu(
         'title': 'Submenu title',
         'description': 'Submenu description'
     }
-    response = client.post(
+    response = await client.post(
         f"/menus/{global_submenu_data['menu_id']}/submenus",
         json=data
     )
