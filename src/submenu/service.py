@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import Depends
+from fastapi.background import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import models
@@ -16,8 +17,11 @@ from src.submenu.schemas import UpdateSubmenu
 class SubmenuService:
 
     def __init__(
-            self, session: AsyncSession = Depends(get_session)
+            self,
+            background_tasks: BackgroundTasks,
+            session: AsyncSession = Depends(get_session)
     ):
+        self.background_tasks = background_tasks
         self.session = session,
         self.submenu_repository = SubmenuRepository(session)
         self.menu_repository = MenuRepository(session)
@@ -110,7 +114,8 @@ class SubmenuService:
         # Удаляем из кэща все что было связано с menu_id
         # и get_menus что бы новое подменю учитывалось
         # при подсчёты количество подменю
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [menu_id],
                 [MenuService.get_menus.__name__]
@@ -150,13 +155,13 @@ class SubmenuService:
         # Удаляем из кэша все что было связано с menu_id
         # и get_menus что бы новое подменю учитывалось
         # при подсчёты количество подменю
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [menu_id],
                 [MenuService.get_menus.__name__]
             ]
         )
-
         return db_data
 
     async def delete_submenu(
@@ -169,7 +174,8 @@ class SubmenuService:
         # Удаляем из кэша все что было связано с menu_id
         # и get_menus что бы новое подменю учитывалось в
         # при подсчёты количество подменю
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [menu_id],
                 [MenuService.get_menus.__name__]

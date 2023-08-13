@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import Depends
+from fastapi.background import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import models
@@ -16,8 +17,10 @@ class DishService:
 
     def __init__(
             self,
+            background_tasks: BackgroundTasks,
             session: AsyncSession = Depends(get_session)
     ):
+        self.background_tasks = background_tasks
         self.session = session
         self.dish_repository = DishRepository(session)
         self.submenu_repository = SubmenuRepository(session)
@@ -107,7 +110,8 @@ class DishService:
         # Удаляем из кэша все что было связано с menu_id,
         # submenu_id и get_menus что бы новое блюдо учитывалось
         # при подсчёте количество подменю и блюд
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [menu_id],
                 [MenuService.get_menus.__name__]
@@ -147,7 +151,8 @@ class DishService:
         # Удаляем из кэша все что было связано с menu_id,
         # submenu_id и get_menus что бы новое блюдо учитывалось
         # при подсчёте количество подменю и блюд
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [menu_id],
                 [MenuService.get_menus.__name__]
@@ -171,7 +176,8 @@ class DishService:
         # Удаляем из кэша все что было связано с menu_id,
         # submenu_id и get_menus что бы новое блюдо учитывалось
         # при подсчёте количество подменю и блюд
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [menu_id],
                 [MenuService.get_menus.__name__]

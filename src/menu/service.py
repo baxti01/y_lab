@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import Depends
+from fastapi.background import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import models
@@ -11,7 +12,12 @@ from src.redis.repository import RedisRepository
 
 
 class MenuService:
-    def __init__(self, session: AsyncSession = Depends(get_session)):
+    def __init__(
+            self,
+            background_tasks: BackgroundTasks,
+            session: AsyncSession = Depends(get_session),
+    ):
+        self.background_tasks = background_tasks
         self.session = session
         self.menu_repository = MenuRepository(session=session)
         self.redis_repository = RedisRepository()
@@ -91,9 +97,9 @@ class MenuService:
             data=[db_data],
             expire=180
         )
-        await self.redis_repository.invalidate_cache(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_cache,
             keys=[self.get_menus.__name__]
-
         )
 
         return db_data
@@ -124,7 +130,8 @@ class MenuService:
         )
 
         # Удаляет сразу несколько ключей
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [self.get_menus.__name__],
                 [menu_id],
@@ -141,7 +148,8 @@ class MenuService:
         await self.menu_repository.delete(menu_id)
 
         # Удаляет сразу несколько ключей
-        await self.redis_repository.invalidate_caches(
+        self.background_tasks.add_task(
+            func=self.redis_repository.invalidate_caches,
             caches_keys=[
                 [self.get_menus.__name__],
                 [menu_id],
