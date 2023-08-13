@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
-from fastapi_cache.decorator import cache
 
 from src.dish.schemas import CreateDish, Dish, UpdateDish
 from src.dish.service import DishService
@@ -15,27 +14,27 @@ router = APIRouter(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes',
     response_model=list[Dish]
 )
-@cache(expire=300)
-def get_dishes(
+async def get_dishes(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         service: DishService = Depends()
 ):
-    return service.get_dishes(menu_id, submenu_id)
+    data = await service.get_dishes(menu_id, submenu_id)
+    print('API da', data)
+    return data
 
 
 @router.get(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=Dish
 )
-@cache(expire=300)
-def get_dish(
+async def get_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         dish_id: uuid.UUID,
         service: DishService = Depends()
 ):
-    return service.get_dish(menu_id, submenu_id, dish_id)
+    return await service.get_dish(menu_id, submenu_id, dish_id)
 
 
 @router.post(
@@ -43,37 +42,37 @@ def get_dish(
     response_model=Dish,
     status_code=status.HTTP_201_CREATED
 )
-def create_dish(
+async def create_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         data: CreateDish,
         service: DishService = Depends()
 ):
-    return service.create_dish(menu_id, submenu_id, data)
+    return await service.create_dish(menu_id, submenu_id, data)
 
 
 @router.patch(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=Dish
 )
-def patch_dish(
+async def patch_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         dish_id: uuid.UUID,
         data: UpdateDish,
         service: DishService = Depends()
 ):
-    return service.patch_dish(menu_id, submenu_id, dish_id, data)
+    return await service.patch_dish(menu_id, submenu_id, dish_id, data)
 
 
 @router.delete(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
 )
-def delete_dish(
+async def delete_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         dish_id: uuid.UUID,
         service: DishService = Depends()
 ):
-    service.delete_dish(menu_id, submenu_id, dish_id)
+    await service.delete_dish(menu_id, submenu_id, dish_id)
     return {}

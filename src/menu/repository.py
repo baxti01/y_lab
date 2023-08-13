@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, distinct, func, insert, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import models
 from src.menu import schemas
@@ -11,11 +11,11 @@ from src.menu import schemas
 class MenuRepository:
     model = models.Menu
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def get_all(self) -> list[tuple[models.Menu, int, int]]:
-        query = self.session.execute(
+    async def get_all(self) -> list[tuple[models.Menu, int, int]]:
+        query = await self.session.execute(
             select(
                 models.Menu,
                 func.count(distinct(models.Submenu.id)).label('submenus_count'),
@@ -28,11 +28,11 @@ class MenuRepository:
 
         return query.all()
 
-    def get(
+    async def get(
             self,
             **kwargs
     ) -> tuple[models.Menu, int, int]:
-        query = self.session.execute(
+        query = await self.session.execute(
             select(
                 models.Menu,
                 func.count(distinct(models.Submenu.id)).label('submenus_count'),
@@ -53,7 +53,7 @@ class MenuRepository:
 
         return menu
 
-    def create(
+    async def create(
             self,
             data: schemas.CreateMenu
     ) -> tuple[models.Menu, int, int]:
@@ -62,31 +62,31 @@ class MenuRepository:
             id=uuid.uuid4()
         ).returning(models.Menu.id)
 
-        menu = self.session.execute(stmt)
-        self.session.commit()
+        menu = await self.session.execute(stmt)
+        await self.session.commit()
 
-        return self.get(id=menu.scalar_one())
+        return await self.get(id=menu.scalar_one())
 
-    def patch(
+    async def patch(
             self,
             menu_id: uuid.UUID,
             data: schemas.UpdateMenu
     ) -> tuple[models.Menu, int, int]:
-        menu_tuple = self.get(id=menu_id)
+        menu_tuple = await self.get(id=menu_id)
         for field, value in data:
             setattr(menu_tuple[0], field, value)
 
-        self.session.commit()
-        self.session.refresh(menu_tuple[0])
+        await self.session.commit()
+        await self.session.refresh(menu_tuple[0])
 
         return menu_tuple
 
-    def delete(
+    async def delete(
             self,
             menu_id: uuid.UUID
     ) -> None:
         stmt = delete(models.Menu).where(
             models.Menu.id == menu_id
         )
-        self.session.execute(stmt)
-        self.session.commit()
+        await self.session.execute(stmt)
+        await self.session.commit()

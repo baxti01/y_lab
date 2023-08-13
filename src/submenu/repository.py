@@ -2,21 +2,21 @@ import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, delete, distinct, func, insert, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import models
 from src.submenu import schemas
 
 
 class SubmenuRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def get_all(
+    async def get_all(
             self,
             menu_id: uuid.UUID
     ) -> list[tuple[models.Submenu, int]]:
-        query = self.session.execute(
+        query = await self.session.execute(
             select(
                 models.Submenu,
                 func.count(distinct(models.Dish.id))
@@ -28,12 +28,12 @@ class SubmenuRepository:
 
         return query.all()
 
-    def get(
+    async def get(
             self,
             menu_id: uuid.UUID,
             **kwargs
     ) -> tuple[models.Submenu, int]:
-        query = self.session.execute(
+        query = await self.session.execute(
             select(
                 models.Submenu,
                 func.count(distinct(models.Dish.id))
@@ -52,7 +52,7 @@ class SubmenuRepository:
 
         return submenu
 
-    def create(
+    async def create(
             self,
             menu_id: uuid.UUID,
             data: schemas.CreateSubmenu
@@ -63,21 +63,21 @@ class SubmenuRepository:
             menu_id=menu_id
         ).returning(models.Submenu.id)
 
-        submenu = self.session.execute(stmt)
-        self.session.commit()
+        submenu = await self.session.execute(stmt)
+        await self.session.commit()
 
-        return self.get(
+        return await self.get(
             menu_id=menu_id,
             id=submenu.scalar_one()
         )
 
-    def patch(
+    async def patch(
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID,
             data: schemas.UpdateSubmenu
     ) -> tuple[models.Submenu, int]:
-        submenu = self.get(
+        submenu = await self.get(
             menu_id=menu_id,
             id=submenu_id
         )
@@ -85,12 +85,12 @@ class SubmenuRepository:
         for field, value in data:
             setattr(submenu[0], field, value)
 
-        self.session.commit()
-        self.session.refresh(submenu[0])
+        await self.session.commit()
+        await self.session.refresh(submenu[0])
 
         return submenu
 
-    def delete(
+    async def delete(
             self,
             menu_id: uuid.UUID,
             submenu_id: uuid.UUID
@@ -101,5 +101,5 @@ class SubmenuRepository:
                 models.Submenu.id == submenu_id
             )
         )
-        self.session.execute(stmt)
-        self.session.commit()
+        await self.session.execute(stmt)
+        await self.session.commit()
